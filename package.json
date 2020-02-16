@@ -1,0 +1,102 @@
+{
+  "name": "preact-hooked-form",
+  "version": "1.0.0",
+  "repository": "git@github.com:JoviDeCroock/preact-hooked-form.git",
+  "author": "jdecroock <decroockjovi@gmail.com>",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/preact-hooked-form.js",
+  "browser": "dist/preact-hooked-form.umd.js",
+  "umd:main": "dist/preact-hooked-form.umd.js",
+  "jsnext:main": "dist/preact-hooked-form.modern.js",
+  "module": "dist/preact-hooked-form.module.js",
+  "source": "src/index.ts",
+  "syntax": {
+    "esmodules": "dist/preact-hooked-form.modern.js"
+  },
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "keywords": [
+    "preact",
+    "forms",
+    "preact-hooks",
+    "low-bundlesize",
+    "formmanagement",
+    "hooks",
+    "validation"
+  ],
+  "scripts": {
+    "build": "rimraf dist && yarn build:uncompressed && yarn build:minified && yarn cleanup",
+    "build:minified": "microbundle --jsx React.createElement --external react --define process.env.NODE_ENV=production --name preactHookedForm --output dist/prod",
+    "build:uncompressed": "microbundle --jsx React.createElement --external react --no-compress --name preactHookedForm --output dist/",
+    "cleanup": "rimraf .rpt2_cache && rimraf .rts2_cache_cjs && rimraf .rts2_cache_umd && rimraf .rts2_cache_es",
+    "test": "cross-env NODE_ENV=test jest",
+    "test:watch": "cross-env npm run test -- --watch",
+    "prepublishOnly": "npm run test && npm run build",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "devDependencies": {
+    "@testing-library/preact": "1.9.2",
+    "@types/jest": "24.0.23",
+    "@typescript-eslint/eslint-plugin": "2.11.0",
+    "@typescript-eslint/parser": "2.11.0",
+    "codecov": "3.6.1",
+    "cross-env": "5.2.0",
+    "eslint": "6.7.2",
+    "eslint-config-prettier": "6.7.0",
+    "husky": "3.1.0",
+    "jest": "24.9.0",
+    "jest-cli": "24.9.0",
+    "lint-staged": "9.5.0",
+    "microbundle": "0.12.0-next.6",
+    "prettier": "1.19.1",
+    "preact": "latest",
+    "rimraf": "2.6.3",
+    "ts-jest": "24.2.0",
+    "tslib": "1.10.0",
+    "typescript": "3.7.3"
+  },
+  "peerDependencies": {
+    "preact": ">=10.0.0"
+  },
+  "mangle": {
+    "regex": "^_"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "lint-staged": {
+    "*.{json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.js"
+    ],
+    "preset": "ts-jest",
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true,
+    "testMatch": [
+      "<rootDir>/__tests__/**/*.(test|spec).ts?(x)"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ]
+  }
+}
