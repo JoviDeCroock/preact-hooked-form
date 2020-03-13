@@ -17,7 +17,8 @@ export interface FieldOptions {
 export function useField<T = any>(
   fieldId: string
 ): [FieldOperations<T>, FieldInformation<T>] {
-  const state = useReducer(c => !c, false);
+  const state = useReducer((c: boolean) => !c, false);
+
   if (
     process.env.NODE_ENV !== 'production' &&
     (!fieldId || typeof fieldId !== 'string')

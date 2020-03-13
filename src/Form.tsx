@@ -1,9 +1,11 @@
 import { h, VNode } from 'preact';
-import { useState as preactUseState, useEffect, useRef } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { deriveInitial } from './helpers/deriveInitial';
-import useState, { EMPTY_OBJ } from './helpers/useState';
 import { Errors, Touched } from './types';
 import { formContext } from './context';
+import { set } from './helpers/operations';
+
+const EMPTY_OBJ = {};
 
 export interface SuccessBag {
   resetForm: () => void;
@@ -58,17 +60,13 @@ export const Form = <Values extends object>({
   validateOnBlur,
   validateOnChange,
 }: FormOptions<Values>) => {
-  const { 0: values, 1: setFieldValue, 2: setValuesState } = useState(
-    initialValues
+  const { 0: values, 1: setValues } = useState(initialValues || EMPTY_OBJ);
+  const { 0: touched, 1: setTouched } = useState(
+    (initialErrors && (() => deriveInitial(initialErrors, true))) || EMPTY_OBJ
   );
-  const { 0: touched, 1: touch, 2: setTouchedState } = useState(
-    initialErrors && (() => deriveInitial(initialErrors, true))
-  );
-  const { 0: errors, 1: setFieldError, 2: setErrorState } = useState(
-    initialErrors
-  );
-  const { 0: isSubmitting, 1: setSubmitting } = preactUseState<boolean>(false);
-  const { 0: formError, 1: setFormError } = preactUseState<string | undefined>(
+  const { 0: errors, 1: setErrors } = useState(initialErrors || EMPTY_OBJ);
+  const { 0: isSubmitting, 1: setSubmitting } = useState<boolean>(false);
+  const { 0: formError, 1: setFormError } = useState<string | undefined>(
     undefined
   );
 
@@ -76,20 +74,22 @@ export const Form = <Values extends object>({
 
   const validateForm = () => {
     const validationErrors = (validate && validate(values)) || EMPTY_OBJ;
-    setErrorState(validationErrors);
+    setErrors(validationErrors);
     return validationErrors;
   };
 
   const resetForm = () => {
     isDirty.current = false;
-    setValuesState(initialValues);
-    setTouchedState(initialErrors && deriveInitial(initialErrors, true));
-    setErrorState(initialErrors);
+    setValues(initialValues || EMPTY_OBJ);
+    setTouched(
+      (initialErrors && deriveInitial(initialErrors, true)) || EMPTY_OBJ
+    );
+    setErrors(initialErrors || EMPTY_OBJ);
   };
 
   const handleSubmit = () => {
     const fieldErrors = validateForm();
-    setTouchedState(deriveInitial(fieldErrors, true));
+    setTouched(deriveInitial(fieldErrors, true));
     if (!shouldSubmitWhenInvalid && Object.keys(fieldErrors).length > 0) {
       setSubmitting(false);
     }
@@ -99,9 +99,7 @@ export const Form = <Values extends object>({
     };
 
     return new Promise(resolve =>
-      resolve(
-        onSubmit(values, { setErrors: setErrorState, setFormError: setFormErr })
-      )
+      resolve(onSubmit(values, { setErrors, setFormError: setFormErr }))
     )
       .then((result: any) => {
         setSubmitting(false);
@@ -109,8 +107,7 @@ export const Form = <Values extends object>({
       })
       .catch((e: any) => {
         setSubmitting(false);
-        if (onError)
-          onError(e, { setErrors: setErrorState, setFormError: setFormErr });
+        if (onError) onError(e, { setErrors, setFormError: setFormErr });
       });
   };
 
@@ -145,7 +142,7 @@ export const Form = <Values extends object>({
 
   const change = (fieldId: string, value: any) => {
     isDirty.current = true;
-    setFieldValue(fieldId, value);
+    setValues((s: Values) => set(s, fieldId, value));
   };
 
   return (
@@ -157,10 +154,12 @@ export const Form = <Values extends object>({
         isSubmitting,
         resetForm,
         setFieldError: (fieldId: string, error?: any) => {
-          setFieldError(fieldId, error);
+          setErrors((s: Errors) => set(s, fieldId, error));
         },
         setFieldTouched: (fieldId: string, value?: boolean) => {
-          touch(fieldId, value == null ? true : value);
+          setTouched((s: Touched) =>
+            set(s, fieldId, value == null ? true : value)
+          );
         },
         setFieldValue: change,
         submit,
